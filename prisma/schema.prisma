@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  CustomerID Int       @id @default(autoincrement())
+  Name       String
+  Address    String
+  Email      String    @unique(map: "Email") @db.VarChar(100)
+  Phone      String    @db.VarChar(15)
+  Booking    Booking[]
+}
+
+model Car {
+  CarID           Int              @id @default(autoincrement())
+  LicensePlateNum String           @db.VarChar(100)
+  Type            String           @db.VarChar(100)
+  Brand           String           @db.VarChar(100)
+  Availability    String           @db.VarChar(100)
+  Price           Decimal          @db.Decimal(10, 2)
+  BookingDetails  BookingDetails[]
+}
+
+model Booking {
+  BookingID   Int       @id @default(autoincrement())
+  CustomerID  Int
+  BookingDate DateTime? @default(now()) @db.DateTime(0)
+
+  Customer       Customer         @relation(fields: [CustomerID], references: [CustomerID], onDelete: Cascade, onUpdate: NoAction, map: "Booking_ibfk_1")
+  BookingDetails BookingDetails[]
+
+  @@index([CustomerID], map: "CustomerID")
+}
+
+model BookingDetails {
+  BookingDetailsID Int     @id @default(autoincrement())
+  BookingID        Int
+  CarID            Int
+  Price            Decimal @db.Decimal(10, 2)
+
+  Booking Booking @relation(fields: [BookingID], references: [BookingID], onDelete: Cascade, onUpdate: NoAction, map: "BookingDetails_ibfk_1")
+  Car     Car     @relation(fields: [CarID], references: [CarID], onDelete: Cascade, onUpdate: NoAction, map: "BookingDetails_ibfk_2")
+
+  @@index([CarID], map: "CarID")
+  @@index([BookingID], map: "BookingID")
+}
